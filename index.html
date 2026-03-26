@@ -7,157 +7,136 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-        
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f0f4f8;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .notification-btn {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .notification-btn:active {
-            transform: scale(0.95);
-        }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .btn-primary { background-color: #2563eb; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-6">
 
-    <div class="glass-card w-full max-w-md p-8">
+    <div class="card w-full max-w-md p-8">
         <div class="text-center mb-8">
-            <div class="inline-block p-4 bg-blue-100 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="inline-block p-4 bg-blue-50 rounded-full mb-3 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800">مُرسل الإشعارات</h1>
-            <p id="permissionStatus" class="text-sm text-amber-600 mt-2 font-bold">جاري التحقق من الصلاحيات...</p>
+            <h1 class="text-2xl font-bold text-gray-800">مُجدول الإشعارات</h1>
+            <p id="permStatus" class="text-sm mt-2 font-semibold"></p>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-5">
             <div>
-                <label for="notifTitle" class="block text-sm font-medium text-gray-700 mb-1">عنوان الإشعار</label>
-                <input type="text" id="notifTitle" placeholder="مثلاً: تذكير هامي" 
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
+                <input type="text" id="title" placeholder="عنوان الإشعار" 
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
 
             <div>
-                <label for="notifBody" class="block text-sm font-medium text-gray-700 mb-1">محتوى الإشعار</label>
-                <textarea id="notifBody" rows="3" placeholder="اكتب التفاصيل هنا..." 
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"></textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-1">المحتوى</label>
+                <textarea id="message" rows="2" placeholder="اكتب رسالتك هنا..." 
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"></textarea>
             </div>
 
-            <button onclick="requestPermissionAndSend()" 
-                class="notification-btn w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2">
-                <span>إرسال الإشعار</span>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">وقت الإرسال (بعد ثوانٍ)</label>
+                <input type="number" id="delay" value="5" min="1" 
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+
+            <button onclick="handleSchedule()" 
+                class="btn-primary w-full text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                 </svg>
+                <span>جدولة الآن</span>
             </button>
         </div>
 
-        <div id="statusMessage" class="mt-6 text-center text-sm p-3 rounded-lg hidden"></div>
+        <div id="status" class="mt-6 text-center text-sm p-3 rounded-xl hidden"></div>
         
-        <div class="mt-6 border-t pt-4">
-            <p class="text-xs text-gray-400 leading-relaxed">
-                ملاحظة: إذا كنت تفتح هذا الملف محلياً (File)، قد تمنع بعض المتصفحات الإشعارات لأسباب أمنية. جرب رفعه على استضافة تدعم HTTPS.
+        <div class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
+            <p class="text-xs text-amber-700 leading-relaxed">
+                <b>ملاحظة لـ Chromebook:</b> لضمان عمل الإشعارات بعد إغلاق الصفحة، يرجى تشغيل الملف من خلال سيرفر محلي أو استضافة (HTTPS). المتصفح يمنع "عمال الخدمة" من روابط الـ Blob لأسباب أمنية.
             </p>
         </div>
     </div>
 
     <script>
-        const statusEl = document.getElementById('statusMessage');
-        const permStatusEl = document.getElementById('permissionStatus');
+        const statusDiv = document.getElementById('status');
+        const permText = document.getElementById('permStatus');
 
-        // تحديث حالة الصلاحيات فوراً
-        function updatePermissionUI() {
+        function updateUI() {
             if (!("Notification" in window)) {
-                permStatusEl.textContent = "المتصفح لا يدعم الإشعارات";
-                permStatusEl.className = "text-sm text-red-600 mt-2 font-bold";
-            } else {
-                if (Notification.permission === "granted") {
-                    permStatusEl.textContent = "الصلاحية: مسموح بها ✅";
-                    permStatusEl.className = "text-sm text-green-600 mt-2 font-bold";
-                } else if (Notification.permission === "denied") {
-                    permStatusEl.textContent = "الصلاحية: مرفوضة ❌ (يرجى تفعيلها من إعدادات الموقع)";
-                    permStatusEl.className = "text-sm text-red-600 mt-2 font-bold";
-                } else {
-                    permStatusEl.textContent = "الصلاحية: بانتظار الموافقة ⏳";
-                    permStatusEl.className = "text-sm text-amber-600 mt-2 font-bold";
-                }
-            }
-        }
-
-        window.onload = updatePermissionUI;
-
-        function showStatus(text, type = 'success') {
-            statusEl.textContent = text;
-            statusEl.className = `mt-6 text-center text-sm p-3 rounded-lg block ${
-                type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-            }`;
-            setTimeout(() => statusEl.classList.add('hidden'), 4000);
-        }
-
-        async function requestPermissionAndSend() {
-            if (!("Notification" in window)) {
-                showStatus("متصفحك لا يدعم هذه الخاصية", "error");
+                permText.textContent = "المتصفح لا يدعم الإشعارات ❌";
+                permText.className = "text-sm mt-2 text-red-600 font-bold";
                 return;
             }
-
+            
             if (Notification.permission === "granted") {
-                executeNotification();
+                permText.textContent = "صلاحية الإشعارات مفعلة ✅";
+                permText.className = "text-sm mt-2 text-green-600 font-bold";
+            } else if (Notification.permission === "denied") {
+                permText.textContent = "الصلاحية مرفوضة! يرجى تفعيلها ⚠️";
+                permText.className = "text-sm mt-2 text-red-600 font-bold";
             } else {
-                const permission = await Notification.requestPermission();
-                updatePermissionUI();
-                if (permission === "granted") {
-                    executeNotification();
-                } else {
-                    showStatus("يجب منح الإذن لإظهار الإشعار", "error");
-                }
+                permText.textContent = "بانتظار الموافقة على الصلاحية ⏳";
+                permText.className = "text-sm mt-2 text-amber-600 font-bold";
             }
         }
 
-        function executeNotification() {
-            const title = document.getElementById('notifTitle').value.trim() || "تنبيه";
-            const body = document.getElementById('notifBody').value.trim();
+        updateUI();
 
-            if (!body) {
-                showStatus("الرجاء كتابة محتوى للإشعار", "error");
+        function showStatus(msg, isError = false) {
+            statusDiv.textContent = msg;
+            statusDiv.className = `mt-6 text-center text-sm p-3 rounded-xl block ${isError ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`;
+            setTimeout(() => statusDiv.classList.add('hidden'), 5000);
+        }
+
+        async function handleSchedule() {
+            if (Notification.permission !== "granted") {
+                const permission = await Notification.requestPermission();
+                updateUI();
+                if (permission !== "granted") {
+                    showStatus("يجب السماح بالإشعارات أولاً", true);
+                    return;
+                }
+            }
+
+            const title = document.getElementById('title').value || "تنبيه";
+            const msg = document.getElementById('message').value;
+            const delaySec = parseInt(document.getElementById('delay').value) || 5;
+
+            if (!msg) {
+                showStatus("يرجى كتابة محتوى الرسالة", true);
                 return;
             }
 
-            try {
-                // محاولة إظهار الإشعار بالطريقة التقليدية
-                const n = new Notification(title, {
-                    body: body,
-                    icon: 'https://cdn-icons-png.flaticon.com/512/3119/3119338.png',
-                    tag: 'chromebook-notif-' + Date.now(), // يمنع تداخل الإشعارات
-                    requireInteraction: true // يبقيه ظاهراً حتى يتفاعل معه المستخدم
-                });
+            showStatus(`سوف يصلك الإشعار بعد ${delaySec} ثانية...`);
 
-                n.onshow = () => {
-                    showStatus("تم ظهور الإشعار على النظام!");
-                    document.getElementById('notifBody').value = '';
-                };
-
-                n.onerror = () => {
-                    showStatus("فشل إظهار الإشعار. تأكد من إعدادات النظام.", "error");
-                };
-
-                // إغلاق بعد مدة
-                setTimeout(() => n.close(), 10000);
-
-            } catch (e) {
-                showStatus("خطأ: " + e.message, "error");
-            }
+            // استخدام setTimeout العادي كحل بديل لـ Service Worker في بيئات التطوير
+            // سيعمل طالما المتصفح مفتوح. للعمل بعد الإغلاق التام يتطلب استضافة HTTPS حقيقية.
+            setTimeout(() => {
+                try {
+                    const n = new Notification(title, {
+                        body: msg,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3119/3119338.png',
+                        requireInteraction: true,
+                        silent: false
+                    });
+                    
+                    n.onclick = () => {
+                        window.focus();
+                        n.close();
+                    };
+                } catch (e) {
+                    console.error("Notification error:", e);
+                }
+            }, delaySec * 1000);
+            
+            document.getElementById('message').value = '';
         }
     </script>
 </body>
