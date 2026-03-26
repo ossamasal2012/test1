@@ -3,583 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSSAMA TV - Premium Streaming</title>
-    <!-- Shaka Player CSS & JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.ui.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/controls.min.css" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>مشغل كود HTML الاحترافي - وضع ملء الشاشة الدائم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --gold: #d4af37;
-            --dark-gold: #aa841e;
-            --bg-black: #0a0a0a;
-            --card-bg: #1a1a1a;
-            --text-gray: #b0b0b0;
-        }
-
         body, html {
-            margin: 0; padding: 0;
-            background-color: var(--bg-black);
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f172a;
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
-            height: 100%;
         }
 
-        /* Header Styling */
-        header {
-            background: linear-gradient(to bottom, #1a1a1a, #000);
-            padding: 15px 25px;
+        #editor-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--gold);
-            position: sticky;
+            flex-direction: column;
+            height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .code-input {
+            flex-grow: 1;
+            background: #1e293b;
+            color: #f8fafc;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        #preview-overlay {
+            position: fixed;
             top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--gold);
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-            letter-spacing: 2px;
-        }
-
-        /* Player Section */
-        #player-wrapper {
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            z-index: 9999;
             display: none;
+        }
+
+        #preview-frame {
             width: 100%;
-            height: 60vh;
-            background: #000;
-            position: relative;
+            height: 100%;
+            border: none;
         }
 
-        .shaka-video-container { width: 100%; height: 100%; }
-        video { 
-            width: 100%; height: 100%; object-fit: contain;
-            filter: contrast(1.1) saturate(1.2) brightness(1.05);
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-        .close-player {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            padding: 5px 15px;
-            cursor: pointer;
-            z-index: 10;
-            border-radius: 5px;
-        }
-
-        /* Main Content */
-        .container { padding: 20px; max-width: 1200px; margin: auto; }
-
-        .section-header {
+        /* تحسينات الواجهة */
+        header {
+            padding: 15px 25px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            color: var(--gold);
-            font-size: 20px;
-            border-right: 4px solid var(--gold);
-            padding-right: 15px;
-        }
-
-        /* Grid Layout */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            border: 1px solid #333;
-            position: relative;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-            border-color: var(--gold);
-        }
-
-        .card img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-        }
-
-        .card-info {
-            padding: 10px;
-            text-align: center;
-        }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-actions {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            display: flex;
-            gap: 5px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .card:hover .card-actions { opacity: 1; }
-
-        .btn-action {
-            background: rgba(0,0,0,0.8);
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-edit { color: #3498db; }
-        .btn-delete { color: #e74c3c; }
-
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            background: var(--gold);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            cursor: pointer;
-            z-index: 99;
-            transition: transform 0.3s;
-        }
-
-        .fab:hover { transform: scale(1.1) rotate(90deg); }
-        .fab i { color: black; font-size: 24px; }
-
-        /* Modal Styling */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 450px;
-            border: 1px solid var(--gold);
-        }
-
-        .modal-content h3 { color: var(--gold); margin-top: 0; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: var(--text-gray); }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .modal-btns {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-primary { background: var(--gold); color: black; }
-        .btn-cancel { background: #444; color: white; }
-
-        /* Loader */
-        .shaka-spinner-container { width: 100% !important; height: 100% !important; }
-        .shaka-spinner { border-top-color: var(--gold) !important; }
-
-        /* Navigation Breadcrumbs */
-        .breadcrumbs {
-            margin-bottom: 15px;
-            color: var(--text-gray);
-            cursor: pointer;
-        }
-        .breadcrumbs span:hover { color: var(--gold); }
-
-        @media (max-width: 600px) {
-            .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-            #player-wrapper { height: 40vh; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">OSSAMA TV</div>
-        <div><i class="fas fa-crown" style="color: var(--gold);"></i></div>
-    </header>
-
-    <!-- Player Container -->
-    <div id="player-wrapper">
-        <button class="close-player" onclick="closePlayer()">إغلاق <i class="fas fa-times"></i></button>
-        <div data-shaka-player-container class="shaka-video-container">
-            <video id="video-player" data-shaka-player autoplay crossorigin="anonymous" playsinline></video>
-        </div>
+    <div id="editor-container">
+        <header>
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <h1 class="mr-4 font-bold text-lg">محرك الأكواد المباشر (الوضع الدائم)</h1>
+            </div>
+            <button onclick="launchPreview()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition-all transform active:scale-95">
+                تشغيل ومعاينة (قفل ملء الشاشة)
+            </button>
+        </header>
+        <textarea id="html-code" class="code-input" placeholder="اكتب كود HTML هنا..."></textarea>
     </div>
 
-    <div class="container">
-        <div id="nav-info" class="breadcrumbs" style="display:none;" onclick="showHome()">
-            <i class="fas fa-arrow-right"></i> العودة للرئيسية
-        </div>
-
-        <div class="section-header">
-            <div class="section-title" id="current-title">باقات القنوات</div>
-        </div>
-
-        <div id="main-grid" class="grid">
-            <!-- Content Injected Here -->
-        </div>
-    </div>
-
-    <!-- Floating Action Button -->
-    <div class="fab" onclick="toggleAddMenu()">
-        <i class="fas fa-plus"></i>
-    </div>
-
-    <!-- Add Menu Modal -->
-    <div id="add-menu" class="modal" onclick="closeModal(event, 'add-menu')">
-        <div class="modal-content">
-            <h3>ماذا تريد أن تضيف؟</h3>
-            <div style="display: grid; gap: 15px;">
-                <button class="btn btn-primary" onclick="openForm('group')"><i class="fas fa-folder-plus"></i> إضافة مجموعة</button>
-                <button class="btn btn-primary" onclick="openForm('channel')"><i class="fas fa-tv"></i> إضافة قناة</button>
-            </div>
-            <button class="btn btn-cancel" style="width: 100%; margin-top: 15px;" onclick="hideModal('add-menu')">إلغاء</button>
-        </div>
-    </div>
-
-    <!-- Group Form Modal -->
-    <div id="group-form-modal" class="modal" onclick="closeModal(event, 'group-form-modal')">
-        <div class="modal-content">
-            <h3 id="group-modal-title">إضافة مجموعة جديدة</h3>
-            <input type="hidden" id="edit-group-id">
-            <div class="form-group">
-                <label>اسم الباقة</label>
-                <input type="text" id="group-name" placeholder="مثلاً: قنوات رياضية">
-            </div>
-            <div class="form-group">
-                <label>رابط صورة الباقة</label>
-                <input type="text" id="group-image" placeholder="https://...">
-            </div>
-            <div class="modal-btns">
-                <button class="btn btn-primary" onclick="saveGroup()">حفظ المجموعة</button>
-                <button class="btn btn-cancel" onclick="hideModal('group-form-modal')">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Channel Form Modal -->
-    <div id="channel-form-modal" class="modal" onclick="closeModal(event, 'channel-form-modal')">
-        <div class="modal-content">
-            <h3 id="channel-modal-title">إضافة قناة جديدة</h3>
-            <input type="hidden" id="edit-channel-id">
-            <div class="form-group">
-                <label>اسم القناة</label>
-                <input type="text" id="channel-name" placeholder="اسم القناة">
-            </div>
-            <div class="form-group">
-                <label>رابط البث (m3u8 / mpd / url)</label>
-                <input type="text" id="channel-url" placeholder="http://...">
-            </div>
-            <div class="form-group">
-                <label>رابط صورة القناة</label>
-                <input type="text" id="channel-logo" placeholder="https://...">
-            </div>
-            <div class="form-group" id="parent-group-select-container">
-                <label>المجموعة</label>
-                <select id="parent-group-id">
-                    <option value="root">الرئيسية (بدون مجموعة)</option>
-                </select>
-            </div>
-            <div class="modal-btns">
-                <button class="btn btn-primary" onclick="saveChannel()">حفظ القناة</button>
-                <button class="btn btn-cancel" onclick="hideModal('channel-form-modal')">إلغاء</button>
-            </div>
-        </div>
+    <!-- طبقة المعاينة (Fullscreen Content) -->
+    <div id="preview-overlay">
+        <iframe id="preview-frame"></iframe>
+        <!-- تم حذف زر الخروج نهائياً -->
     </div>
 
     <script>
-        // --- Data Management ---
-        let appData = JSON.parse(localStorage.getItem('ossama_tv_data')) || {
-            groups: [],
-            channels: []
+        const editor = document.getElementById('html-code');
+        const overlay = document.getElementById('preview-overlay');
+        const frame = document.getElementById('preview-frame');
+        const editorContainer = document.getElementById('editor-container');
+
+        // استعادة الكود من التخزين المحلي عند التحميل
+        window.onload = () => {
+            const savedCode = localStorage.getItem('saved_html_code');
+            const isPreviewActive = localStorage.getItem('is_preview_active');
+
+            if (savedCode) {
+                editor.value = savedCode;
+            } else {
+                // كود افتراضي
+                editor.value = `<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { 
+            background: linear-gradient(45deg, #1e1b4b, #312e81); 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: sans-serif;
+            text-align: center;
+        }
+        h1 { font-size: 3rem; }
+        p { font-size: 1.5rem; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>تم قفل العرض بنجاح</h1>
+        <p>هذا الكود سيعمل بوضع ملء الشاشة للأبد</p>
+    </div>
+</body>
+</html>`;
+            }
+
+            // إذا كان وضع المعاينة مفعلاً، يتم التشغيل فوراً وبقوة
+            if (isPreviewActive === 'true') {
+                launchPreview();
+            }
         };
 
-        let currentGroupId = 'root';
-        let shakaPlayer = null;
-
-        function saveData() {
-            localStorage.setItem('ossama_tv_data', JSON.stringify(appData));
-            render();
-        }
-
-        // --- Navigation ---
-        function showHome() {
-            currentGroupId = 'root';
-            document.getElementById('nav-info').style.display = 'none';
-            document.getElementById('current-title').innerText = 'باقات القنوات';
-            render();
-        }
-
-        function openGroup(id) {
-            currentGroupId = id;
-            const group = appData.groups.find(g => g.id === id);
-            document.getElementById('nav-info').style.display = 'block';
-            document.getElementById('current-title').innerText = group.name;
-            render();
-        }
-
-        // --- Rendering ---
-        function render() {
-            const grid = document.getElementById('main-grid');
-            grid.innerHTML = '';
-
-            if (currentGroupId === 'root') {
-                // Render Groups
-                appData.groups.forEach(group => {
-                    grid.innerHTML += `
-                        <div class="card" onclick="openGroup('${group.id}')">
-                            <div class="card-actions">
-                                <button class="btn-action btn-edit" onclick="event.stopPropagation(); editGroup('${group.id}')"><i class="fas fa-edit"></i></button>
-                                <button class="btn-action btn-delete" onclick="event.stopPropagation(); deleteGroup('${group.id}')"><i class="fas fa-trash"></i></button>
-                            </div>
-                            <img src="${group.image || 'https://via.placeholder.com/150/111/d4af37?text=Group'}" onerror="this.src='https://via.placeholder.com/150/111/d4af37?text=Group'">
-                            <div class="card-info">
-                                <div class="card-title">${group.name}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            // Render Channels for current context
-            const channels = appData.channels.filter(c => c.parentId === currentGroupId);
-            channels.forEach(channel => {
-                grid.innerHTML += `
-                    <div class="card" onclick="playChannel('${channel.url}')">
-                        <div class="card-actions">
-                            <button class="btn-action btn-edit" onclick="event.stopPropagation(); editChannel('${channel.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="btn-action btn-delete" onclick="event.stopPropagation(); deleteChannel('${channel.id}')"><i class="fas fa-trash"></i></button>
-                        </div>
-                        <img src="${channel.logo || 'https://via.placeholder.com/150/111/d4af37?text=TV'}" onerror="this.src='https://via.placeholder.com/150/111/d4af37?text=TV'">
-                        <div class="card-info">
-                            <div class="card-title">${channel.name}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // --- Group CRUD ---
-        function saveGroup() {
-            const name = document.getElementById('group-name').value;
-            const image = document.getElementById('group-image').value;
-            const editId = document.getElementById('edit-group-id').value;
-
-            if (!name) return alert('يرجى ادخال اسم المجموعة');
-
-            if (editId) {
-                const index = appData.groups.findIndex(g => g.id === editId);
-                appData.groups[index] = { ...appData.groups[index], name, image };
-            } else {
-                appData.groups.push({
-                    id: 'g_' + Date.now(),
-                    name,
-                    image
-                });
-            }
-            saveData();
-            hideModal('group-form-modal');
-        }
-
-        function editGroup(id) {
-            const group = appData.groups.find(g => g.id === id);
-            document.getElementById('group-modal-title').innerText = 'تعديل مجموعة';
-            document.getElementById('edit-group-id').value = group.id;
-            document.getElementById('group-name').value = group.name;
-            document.getElementById('group-image').value = group.image;
-            showModal('group-form-modal');
-        }
-
-        function deleteGroup(id) {
-            if (confirm('هل أنت متأكد من حذف هذه المجموعة؟ سيتم حذف جميع القنوات بداخلها.')) {
-                appData.groups = appData.groups.filter(g => g.id !== id);
-                appData.channels = appData.channels.filter(c => c.parentId !== id);
-                saveData();
-            }
-        }
-
-        // --- Channel CRUD ---
-        function saveChannel() {
-            const name = document.getElementById('channel-name').value;
-            const url = document.getElementById('channel-url').value;
-            const logo = document.getElementById('channel-logo').value;
-            const parentId = document.getElementById('parent-group-id').value;
-            const editId = document.getElementById('edit-channel-id').value;
-
-            if (!name || !url) return alert('يرجى اكمال البيانات');
-
-            if (editId) {
-                const index = appData.channels.findIndex(c => c.id === editId);
-                appData.channels[index] = { ...appData.channels[index], name, url, logo, parentId };
-            } else {
-                appData.channels.push({
-                    id: 'c_' + Date.now(),
-                    name, url, logo, parentId
-                });
-            }
-            saveData();
-            hideModal('channel-form-modal');
-        }
-
-        function editChannel(id) {
-            const channel = appData.channels.find(c => c.id === id);
-            document.getElementById('channel-modal-title').innerText = 'تعديل قناة';
-            document.getElementById('edit-channel-id').value = channel.id;
-            document.getElementById('channel-name').value = channel.name;
-            document.getElementById('channel-url').value = channel.url;
-            document.getElementById('channel-logo').value = channel.logo;
+        // وظيفة تشغيل المعاينة - مستحيل الخروج منها
+        function launchPreview() {
+            const code = editor.value;
             
-            // Update Select
-            const select = document.getElementById('parent-group-id');
-            select.innerHTML = '<option value="root">الرئيسية (بدون مجموعة)</option>';
-            appData.groups.forEach(g => {
-                select.innerHTML += `<option value="${g.id}" ${channel.parentId === g.id ? 'selected' : ''}>${g.name}</option>`;
-            });
+            // حفظ الحالة لضمان الاستمرارية حتى بعد إعادة التحميل
+            localStorage.setItem('saved_html_code', code);
+            localStorage.setItem('is_preview_active', 'true');
 
-            showModal('channel-form-modal');
-        }
+            // حقن الكود
+            frame.srcdoc = code;
 
-        function deleteChannel(id) {
-            if (confirm('حذف هذه القناة؟')) {
-                appData.channels = appData.channels.filter(c => c.id !== id);
-                saveData();
+            // إظهار الطبقة وتغطية كل شيء
+            overlay.style.display = 'block';
+
+            // طلب ملء الشاشة الحقيقي
+            const requestFS = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.msRequestFullscreen;
+            if (requestFS) {
+                requestFS.call(overlay);
             }
         }
 
-        // --- Player Controls ---
-        async function initPlayer() {
-            const video = document.getElementById('video-player');
-            const ui = video['ui'];
-            const controls = ui.getControls();
-            shakaPlayer = controls.getPlayer();
+        // تم حذف دالة closePreview تماماً لجعل الخروج مستحيلاً من داخل التطبيق
 
-            shakaPlayer.getNetworkingEngine().registerRequestFilter(function(type, request) {
-                request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-            });
-
-            shakaPlayer.configure({
-                abr: { enabled: true, switchInterval: 1 },
-                streaming: {
-                    bufferingGoal: 45,
-                    rebufferingGoal: 2,
-                    lowLatencyEnabled: true
-                }
-            });
-        }
-
-        async function playChannel(url) {
-            document.getElementById('player-wrapper').style.display = 'block';
-            window.scrollTo(0,0);
-            try {
-                await shakaPlayer.load(url);
-            } catch (e) {
-                console.error('Playback Error', e);
-                alert('عذراً، تعذر تشغيل هذا الرابط. تأكد من صحته.');
+        // محاولة منع محاولات الخروج اليدوية من الفول سكرين بإعادة تفعيله
+        document.addEventListener('fullscreenchange', () => {
+            const isPreviewActive = localStorage.getItem('is_preview_active');
+            if (!document.fullscreenElement && isPreviewActive === 'true') {
+                // ملاحظة: المتصفحات تمنع إعادة الدخول التلقائي للفول سكرين بدون تفاعل، 
+                // لكن الطبقة (Overlay) ستبقى ظاهرة ولن تظهر واجهة المحرر أبداً.
+                overlay.style.display = 'block';
             }
-        }
+        });
 
-        function closePlayer() {
-            if (shakaPlayer) shakaPlayer.unload();
-            document.getElementById('player-wrapper').style.display = 'none';
-        }
-
-        // --- Modal Helpers ---
-        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function hideModal(id) { document.getElementById(id).style.display = 'none'; }
-        function closeModal(e, id) { if(e.target.id === id) hideModal(id); }
-
-        function toggleAddMenu() { showModal('add-menu'); }
-
-        function openForm(type) {
-            hideModal('add-menu');
-            if (type === 'group') {
-                document.getElementById('group-modal-title').innerText = 'إضافة مجموعة جديدة';
-                document.getElementById('edit-group-id').value = '';
-                document.getElementById('group-name').value = '';
-                document.getElementById('group-image').value = '';
-                showModal('group-form-modal');
-            } else {
-                document.getElementById('channel-modal-title').innerText = 'إضافة قناة جديدة';
-                document.getElementById('edit-channel-id').value = '';
-                document.getElementById('channel-name').value = '';
-                document.getElementById('channel-url').value = '';
-                document.getElementById('channel-logo').value = '';
-                
-                const select = document.getElementById('parent-group-id');
-                select.innerHTML = '<option value="root">الرئيسية (بدون مجموعة)</option>';
-                appData.groups.forEach(g => {
-                    select.innerHTML += `<option value="${g.id}" ${currentGroupId === g.id ? 'selected' : ''}>${g.name}</option>`;
-                });
-                
-                showModal('channel-form-modal');
-            }
-        }
-
-        // --- Startup ---
-        document.addEventListener('shaka-ui-loaded', initPlayer);
-        window.onload = render;
+        // حفظ الكود أثناء الكتابة
+        editor.addEventListener('input', () => {
+            localStorage.setItem('saved_html_code', editor.value);
+        });
 
     </script>
 </body>
