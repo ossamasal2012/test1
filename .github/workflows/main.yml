@@ -72,7 +72,7 @@ jobs:
             "appName": "YallaGoal",
             "webDir": "www",
             "server": {
-              "url": "https://ossamasal2012.github.io/otv/",
+              "url": "https://ossamasal2012.github.io/test1/",
               "cleartext": true,
               "allowNavigation": [
                 "*",
