@@ -205,20 +205,29 @@
         }
 
         // 2. دالة جلب القنوات من GitHub
-        async function fetchRemoteChannels() {
-            const rawUrl = "https://raw.githubusercontent.com/ossamasal2012/yalla-data/refs/heads/main/channels.json";
+async function fetchRemoteChannels() {
+            // الرابط المباشر والأكثر استقراراً
+            const rawUrl = "https://raw.githubusercontent.com/ossamasal2012/yalla-data/main/channels.json";
             
             try {
-                const response = await fetch(rawUrl);
-                if (!response.ok) throw new Error('Network error');
+                // إضافة { cache: "no-store" } تضمن جلب القنوات الجديدة فوراً وعدم استخدام نسخة قديمة مخزنة
+                const response = await fetch(rawUrl, { cache: "no-store" });
                 
-                myChannels = await response.json();
-                console.log("✅ تم تحديث القنوات من السيرفر بنجاح!");
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                
+                // التأكد من أن البيانات مصفوفة وليست فارغة
+                if (data && data.length > 0) {
+                    myChannels = data;
+                    console.log("✅ تم استلام " + data.length + " قناة بنجاح");
+                } else {
+                    console.warn("⚠️ الملف فارغ أو بتنسيق خاطئ");
+                }
             } catch (error) {
-                console.error("❌ فشل التحديث:", error);
-                myChannels = []; // تجنب تعطل التطبيق إذا فشل الاتصال
+                console.error("❌ عطل في الاتصال بالبيانات الخارجية:", error);
             } finally {
-                // استدعاء البناء بعد أن ننتهي من محاولة الجلب
+                // تشغيل الواجهة سواء نجح الجلب أو فشل
                 init();
             }
         }
