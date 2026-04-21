@@ -446,6 +446,30 @@ function renderChannels() {
     // تحديث القائمة فوراً
     renderChannels();
 }
+        // وظيفة جلب القنوات من GitHub
+async function fetchRemoteChannels() {
+    // استبدل الرابط أدناه برابط الـ Raw الخاص بملفك على GitHub
+    const rawUrl = "https://raw.githubusercontent.com/ossamasal2012/yalla-data/refs/heads/main/channels.json";
+    
+    try {
+        const response = await fetch(rawUrl);
+        if (!response.ok) throw new Error('Network error');
+        
+        const data = await response.json();
+        
+        // تحديث المصفوفة بالبيانات الجديدة
+        myChannels = data;
+        
+        // إعادة تشغيل النظام لعرض القنوات الجديدة
+        renderChannels(myChannels);
+        console.log("✅ تم تحديث القنوات من السيرفر بنجاح!");
+    } catch (error) {
+        console.error("❌ فشل التحديث، سيتم استخدام القنوات الافتراضية:", error);
+    }
+}
+
+// استدعاء الدالة عند تشغيل التطبيق
+fetchRemoteChannels();
 
         function playChannel(url, type, name, el) {
             document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active-card'));
