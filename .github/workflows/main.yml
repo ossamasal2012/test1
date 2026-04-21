@@ -64,7 +64,7 @@ jobs:
           cd yalla-goal
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: ⚙️ Capacitor Config (Remote URL Mode)
+- name: ⚙️ Capacitor Config (CORS Fix)
         run: |
           cat > yalla-goal/capacitor.config.json << 'EOF'
           {
@@ -72,14 +72,20 @@ jobs:
             "appName": "YallaGoal",
             "webDir": "www",
             "server": {
-              "url": "https://ossamasal2012.github.io/otv",
+              "url": "https://ossamasal2012.github.io/your-repo-name/",
               "cleartext": true,
-              "allowNavigation": ["*"]
+              "allowNavigation": [
+                "*",
+                "*.googlevideo.com",
+                "*.akamaized.net",
+                "*.twitch.tv"
+              ]
             },
             "android": {
               "allowMixedContent": true,
               "captureInput": true,
-              "webContentsDebuggingEnabled": true
+              "webContentsDebuggingEnabled": true,
+              "loggingBehavior": "debug"
             }
           }
           EOF
