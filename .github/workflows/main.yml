@@ -235,14 +235,23 @@ jobs:
           EOF
 
       # ── الأيقونات بعد sync وبعد تعديل الـ res ──
-      - name: 🖼️ Generate App Icons (after sync)
+# ── الأيقونات: حذف الافتراضي تماماً وإجبار النظام على استخدام صورتك ──
+      - name: 🖼️ Force Custom App Icons
         run: |
-          # 🟢 تم استبدال الرابط هنا ليكون من مستودع GitHub الخاص بك
-          curl -L "https://raw.githubusercontent.com/ossamasal2012/logo/refs/heads/main/Screenshot%202026-04-21%201.52.19%20PM.png" \
-            -o /tmp/icon.png
-          echo "✅ Icon: $(identify /tmp/icon.png | head -1)"
+          ICON_URL="https://raw.githubusercontent.com/ossamasal2012/logo/refs/heads/main/Screenshot%202026-04-21%201.52.19%20PM.png"
+          curl -L "$ICON_URL" -o /tmp/icon.png
+          
+          if [ ! -s /tmp/icon.png ]; then
+            echo "❌ فشل تحميل الصورة!"
+            exit 1
+          fi
 
           BASE="yalla-goal/android/app/src/main/res"
+
+          # 1️⃣ حذف كل مجلدات الأيقونات القديمة (التي تحتوي على XML و PNG)
+          rm -rf $BASE/mipmap-*
+          rm -rf $BASE/drawable/ic_launcher_background.xml
+          rm -rf $BASE/drawable-v24/ic_launcher_foreground.xml
 
           declare -A SIZES=(
             ["mipmap-mdpi"]=48
@@ -256,34 +265,21 @@ jobs:
             SIZE=${SIZES[$DIR]}
             mkdir -p "$BASE/$DIR"
 
-            # ic_launcher مربع
-            convert /tmp/icon.png \
-              -resize ${SIZE}x${SIZE}^ \
-              -gravity center \
-              -extent ${SIZE}x${SIZE} \
-              -background "#020617" \
-              "$BASE/$DIR/ic_launcher.png"
+            # 2️⃣ توليد الأيقونة المربعة
+            convert /tmp/icon.png -resize ${SIZE}x${SIZE}^ -gravity center -extent ${SIZE}x${SIZE} -background "#000000" "$BASE/$DIR/ic_launcher.png"
 
-            # ic_launcher_round دائري
-            convert /tmp/icon.png \
-              -resize ${SIZE}x${SIZE}^ \
-              -gravity center \
-              -extent ${SIZE}x${SIZE} \
-              \( +clone -alpha extract \
-                -draw "fill black polygon 0,0 0,${SIZE} ${SIZE},${SIZE} ${SIZE},0 \
-                       fill white circle $((SIZE/2)),$((SIZE/2)) $((SIZE/2)),0" \
-                \( +clone -negate \) \
-                -compose Multiply -composite \
-              \) \
-              -alpha off -compose CopyOpacity -composite \
-              -background "#020617" -alpha remove \
-              "$BASE/$DIR/ic_launcher_round.png"
+            # 3️⃣ توليد الأيقونة الدائرية
+            convert /tmp/icon.png -resize ${SIZE}x${SIZE}^ -gravity center -extent ${SIZE}x${SIZE} \
+            \( +clone -alpha extract -draw "fill black polygon 0,0 0,${SIZE} ${SIZE},${SIZE} ${SIZE},0 fill white circle $((SIZE/2)),$((SIZE/2)) $((SIZE/2)),0" \( +clone -negate \) -compose Multiply -composite \) \
+            -alpha off -compose CopyOpacity -composite -background "#000000" -alpha remove "$BASE/$DIR/ic_launcher_round.png"
 
-            echo "  ✅ $DIR: ${SIZE}x${SIZE}"
+            echo "✅ Created $DIR"
           done
 
-          echo "=== الأيقونات المولّدة ==="
-          find "$BASE" -name "ic_launcher*.png" | sort
+          # 4️⃣ خطوة حاسمة: حذف أي إشارة للـ Adaptive Icons من ملفات الإعدادات
+          # هذا سيجبر أندرويد على العودة لاستخدام ic_launcher.png مباشرة
+          find $BASE -name "ic_launcher.xml" -delete
+          find $BASE -name "ic_launcher_round.xml" -delete
 
       # ── تحقق نهائي ──
       - name: 🔍 Final Verification
