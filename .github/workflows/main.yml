@@ -64,7 +64,7 @@ jobs:
           cd yalla-goal
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-- name: ⚙️ Capacitor Config (CORS Fix)
+      - name: ⚙️ Capacitor Config (CORS Fix)
         run: |
           cat > yalla-goal/capacitor.config.json << 'EOF'
           {
